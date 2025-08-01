@@ -76,7 +76,7 @@ jobs:
         with:
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: faliarin/alpine-core:latest,faliarin/alpine-core:${{ needs.get-next-version.outputs.version }}
+          tags: faliarin/alpine-core:latest,faliarin/alpine-core:${{ needs.get-next-version.outputs.strict }}
           provenance: mode=max
           sbom: true
 
