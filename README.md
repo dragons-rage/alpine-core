@@ -2,9 +2,9 @@
 
 ## Descrition
 
-Base alpine-core with custonizations for building and running containers.
+Base alpine-core with customizations for building and running containers.
 
 ## Links
 
-* [S6 Overlay](https://github.com/just-containers/s6-overlay)
-
+- [Repo](https://github.com/dragons-rage/alpine-core)
+- [S6 Overlay](https://github.com/just-containers/s6-overlay)
