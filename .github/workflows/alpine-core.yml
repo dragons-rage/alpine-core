@@ -1,4 +1,4 @@
-name: build-alpine-core
+name: Build Alpine Core
 run-name: Alpine Core - ${{ github.actor }} by ${{ github.event_name }} ${{ github.ref }}
 on:
   workflow_dispatch:
@@ -53,7 +53,6 @@ jobs:
           provenance: mode=max
           sbom: true
 
-      # Instead of tagging on merge, we are tagging on release or manually
       - name: Tag Release (vX.Y.Z)
         if: ${{ (github.event_name != 'pull_request') && (steps.version.outputs.changed == true) }}
         run: |
