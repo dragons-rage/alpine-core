@@ -120,7 +120,7 @@ jobs:
             # Always put version
             type=semver,pattern={{version}},value=${{ needs.get-next-version.outputs.version }},enable=true
             # If the push is to the default branch enable
-            type=raw,value=latest,enable={{is_default_branch}}
+            #type=raw,value=latest,enable={{is_default_branch}}
           images: ${{ env.GITHUB_REGISTRY }}/${{ env.IMAGE_NAME }}
 
       - name: Build and Push Docker Master Branch
