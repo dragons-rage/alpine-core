@@ -17,12 +17,12 @@ on:
       - "!README.md"
       - "!.github/**"
 jobs:
-  get-version:
+  get-next-version:
     runs-on: arc-runner-set
-    name: Get new version
+    name: Get next version
     outputs:
-      version: ${{ steps.version.outputs.next }}
-      strict: ${{ steps.version.outputs.nextStrict }}
+      version: ${{ steps.semver.outputs.next }}
+      strict: ${{ steps.semver.outputs.nextStrict }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -46,7 +46,7 @@ jobs:
 
   docker-push:
     name: Push to DockerHub
-    needs: [get-version]
+    needs: [get-next-version]
     runs-on: arc-runner-set
     steps:
       - name: Checkout
@@ -66,19 +66,23 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Execute Order 66
+        run: |
+          echo "This is the version to be referenced: ${{ needs.get-next-version.outputs.version }}"
+
       - name: Build and Push Docker Master Branch
         uses: docker/build-push-action@v3
         if: ${{ (github.event_name != 'pull_request') }}
         with:
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: faliarin/alpine-core:latest,faliarin/alpine-core:${{ needs.get-version.outputs.version }}
+          tags: faliarin/alpine-core:latest,faliarin/alpine-core:${{ needs.get-next-version.outputs.version }}
           provenance: mode=max
           sbom: true
 
   github-push:
     runs-on: arc-runner-set
-    needs: [get-version]
+    needs: [get-next-version]
     name: Push to github packages
     env:
       GITHUB_REGISTRY: ghcr.io
@@ -104,13 +108,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Execute Order 66
+        run: |
+          echo "This is the version to be referenced: ${{ needs.get-next-version.outputs.version }}"
+
       - name: Extract metadata for Docker
         id: meta
         uses: docker/metadata-action@v4
         with:
           tags: |
             # Always put version
-            type=semver,pattern={{version}},value=${{ needs.get-version.outputs.version }},enable=true
+            type=semver,pattern={{version}},value=${{ needs.get-next-version.outputs.version }},enable=true
             # If the push is to the default branch enable
             type=raw,value=latest,enable={{is_default_branch}}
           images: ${{ env.GITHUB_REGISTRY }}/${{ env.IMAGE_NAME }}
@@ -127,7 +135,7 @@ jobs:
           # sbom: true
 
   tag-new-version:
-    needs: [get-version, docker-push, github-push]
+    needs: [get-next-version, docker-push, github-push]
     runs-on: arc-runner-set
     name: Tag new Version
     steps:
@@ -139,5 +147,5 @@ jobs:
       - name: Tag Release (vX.Y.Z)
         if: ${{ (github.event_name != 'pull_request') }}
         run: |
-          git tag ${{ needs.get-version.outputs.version }}
-          git push origin ${{ needs.get-version.outputs.version }}
+          git tag ${{ needs.get-next-version.outputs.version }}
+          git push origin ${{ needs.get-next-version.outputs.version }}
