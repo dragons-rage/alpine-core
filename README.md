@@ -3,8 +3,12 @@
 ## Descrition
 
 Base alpine-core with customizations for building and running containers.
+This container does not do anything on its own, it is just a baseline used to
+build other containers.
 
 This container can be used by the following commands:
+
+## Usage
 
 ```
 docker pull ghcr.io/dragons-rage/alpine-core:latest
