@@ -21,19 +21,28 @@ jobs:
     runs-on: arc-runner-set
     name: Get new version
     outputs:
-      version: ${{ steps.version.outputs.version }}
+      version: ${{ steps.version.outputs.next }}
+      strict: ${{ steps.version.outputs.nextStrict }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
 
-      - name: Git Semantic Version
-        uses: PaulHatch/semantic-version@v5.4.0
-        id: version
+      - name: Get Release Semantic Version
+        uses: ietf-tools/semver-action@v1
+        id: semver
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
+          noVersionBumpBehavior: patch
+
+      # - name: Git Semantic Version
+      #   uses: PaulHatch/semantic-version@v5.4.0
+      #   id: version
 
       - name: Echo Version
-        run: echo "Version would be ${{ steps.version.outputs.version }}"
+        run: echo "Version would be ${{ steps.semver.outputs.next }}"
 
   docker-push:
     name: Push to DockerHub
@@ -101,7 +110,7 @@ jobs:
         with:
           tags: |
             # Always put version
-            type=semver,pattern={{version}},value=${{ steps.semver.outputs.nextStrict }},enable=true
+            type=semver,pattern={{version}},value=${{ needs.get-version.outputs.version }},enable=true
             # If the push is to the default branch enable
             type=raw,value=latest,enable={{is_default_branch}}
           images: ${{ env.GITHUB_REGISTRY }}/${{ env.IMAGE_NAME }}
@@ -118,7 +127,7 @@ jobs:
           # sbom: true
 
   tag-new-version:
-    needs: [docker-push, github-push]
+    needs: [get-version, docker-push, github-push]
     runs-on: arc-runner-set
     name: Tag new Version
     steps:
@@ -127,12 +136,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Git Semantic Version
-        uses: PaulHatch/semantic-version@v5.4.0
-        id: version
-
       - name: Tag Release (vX.Y.Z)
         if: ${{ (github.event_name != 'pull_request') }}
         run: |
-          git tag ${{ steps.version.outputs.version_tag }}
-          git push origin ${{ steps.version.outputs.version_tag }}
+          git tag ${{ needs.get-version.outputs.version }}
+          git push origin ${{ needs.get-version.outputs.version }}
