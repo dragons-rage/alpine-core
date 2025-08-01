@@ -46,6 +46,7 @@ jobs:
 
       - name: Build and Push Docker Master Branch
         uses: docker/build-push-action@v3
+        if: ${{ (github.event_name != 'pull_request') }}
         with:
           platforms: linux/amd64,linux/arm64
           push: true
@@ -54,7 +55,7 @@ jobs:
           sbom: true
 
       - name: Tag Release (vX.Y.Z)
-        if: ${{ (github.event_name != 'pull_request') && (steps.version.outputs.changed == true) }}
+        if: ${{ (github.event_name != 'pull_request') }}
         run: |
           git tag ${{ steps.version.outputs.version_tag }}
           git push origin ${{ steps.version.outputs.version_tag }}
