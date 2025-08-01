@@ -91,6 +91,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          tags: |
+            type=semver,pattern={{version}},value=${{ steps.semver.outputs.nextStrict }}
+            type=raw,value=latest
+          images: ${{ env.GITHUB_REGISTRY }}/${{ env.IMAGE_NAME }}
+
       - name: Build and Push Docker Master Branch
         uses: docker/build-push-action@v3
         if: ${{ (github.event_name != 'pull_request') }}
@@ -98,7 +107,7 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ env.GITHUB_REGISTRY }}/${{ env.IMAGE_NAME }}:latest,${{ env.GITHUB_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.get-version.outputs.version }}
+          tags: ${{ steps.meta.outputs.tags }}
           provenance: mode=max
           sbom: true
 
