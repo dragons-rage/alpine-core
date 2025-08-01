@@ -100,8 +100,10 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           tags: |
-            type=semver,pattern={{version}},value=${{ steps.semver.outputs.nextStrict }}
-            type=raw,value=latest
+            # Always put version
+            type=semver,pattern={{version}},value=${{ steps.semver.outputs.nextStrict }},enable=true
+            # If the push is to the default branch enable
+            type=raw,value=latest,enable={{is_default_branch}}
           images: ${{ env.GITHUB_REGISTRY }}/${{ env.IMAGE_NAME }}
 
       - name: Build and Push Docker Master Branch
