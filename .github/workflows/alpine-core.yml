@@ -71,6 +71,10 @@ jobs:
     runs-on: arc-runner-set
     needs: [get-version]
     name: Push to github packages
+    env:
+      GITHUB_REGISTRY: ghcr.io
+      IMAGE_NAME: ${{ github.repository }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
